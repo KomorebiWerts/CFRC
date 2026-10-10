@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    ports: !override
+      - "5434:5432"
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=10
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_locks_per_transaction=1024
+
+  backend:
+    ports: !override
+      - "8020:8000"
+    environment:
+      # The upstream default silently prebuilds 100 schemas for every template.
+      # PAPC runs bounded rows on demand, so disable that background refill.
+      ENVIRONMENT_POOL_TARGETS: "disabled:0"
+      POOL_REFILL_CONCURRENCY: "1"
